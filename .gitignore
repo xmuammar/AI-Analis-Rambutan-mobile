@@ -1,0 +1,12 @@
+.venv/
+.venv*/
+.buildozer/
+.kivy/
+bin/
+.env
+instance/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.apk
+*.aab
