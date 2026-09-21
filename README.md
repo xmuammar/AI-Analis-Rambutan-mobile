@@ -1,122 +1,94 @@
-# AiAnalisRambutan Web
+# AiAnalisRambutan Mobile
 
-Versi web full-stack Python Flask untuk domain yang sama dengan aplikasi Android offline di `mobile/`.
-Source web sepenuhnya berada di direktori ini dan tidak memakai Django, React, Vue, Next.js,
-Flutter Web, atau Node.js sebagai application server.
+Aplikasi analisis dan pencatatan kebun rambutan dengan **mode Android offline** dan
+aplikasi web Flask. Repository ini berfokus pada data lapangan yang dapat dijelaskan:
+akun lokal, inventaris pohon, inspeksi berkala, riwayat kondisi, backup, dan evaluasi
+berbasis aturan. Sistem tidak mengarang diagnosis, confidence, atau pengukuran foto.
 
-## Aplikasi Android offline
+Repository: <https://github.com/xmuammar/AI-Analis-Rambutan-mobile>
 
-Client Android Python tersedia di `main.py` (PySide6/Qt) dan paket `mobile/`. Versi desktop
-Kivy dipertahankan di `main_kivy.py`. Data akun, 12 pohon awal,
-dan inspeksi disimpan di SQLite pada perangkat. Evaluasi kondisi offline adalah rule engine
-yang transparan dan bukan diagnosis penyakit. Model vision Flask yang berbasis PyTorch dan
-Ultralytics tidak dipaketkan ke APK; model tersebut perlu dikonversi dan divalidasi ke
-TFLite atau ONNX mobile terlebih dahulu.
+## Fitur mobile offline
 
-Untuk menjalankan pada desktop:
+- Login dan pembuatan akun lokal.
+- Seed 12 pohon awal untuk pengujian.
+- Pencatatan inspeksi dan timeline tanaman.
+- Evaluasi kondisi tanaman dengan rule engine explainable.
+- Penyimpanan SQLite lokal dan backup JSON.
+- Foto inspeksi opsional.
+- Tidak membutuhkan jaringan setelah aplikasi terpasang.
+
+`main.py` adalah entrypoint Android berbasis PySide6/Qt. `main_kivy.py` adalah aplikasi
+desktop/legacy Kivy dan bukan entrypoint APK. Model vision/ML berat dari aplikasi web
+tidak dipaketkan ke APK; model harus dikonversi dan divalidasi ke TFLite atau ONNX
+mobile sebelum digunakan di perangkat.
+
+## Menjalankan mobile secara lokal
 
 ```bash
+python3 -m venv .venv_mobile
+source .venv_mobile/bin/activate
 pip install -r mobile/requirements.txt
 python main.py
 ```
 
-Untuk membuat APK (Linux):
+Kode offline utama berada di `mobile/storage.py` dan `mobile/rules.py`.
+
+## Build APK Android
+
+Build arm64 mengikuti toolchain yang kompatibel dengan project amarPlayer:
+Python 3.11, Java 21 ARM64, Android API 36, minimum API 24, dan arsitektur
+`arm64-v8a`.
 
 ```bash
-buildozer android debug
+./scripts/setup_android_env.sh
+./scripts/build_android_arm64.sh
 ```
 
-Build pertama membutuhkan Android SDK/NDK dan koneksi internet untuk mengunduh toolchain.
+Alternatif setup dan troubleshooting tersedia di
+[`README-ANDROID-OFFLINE.md`](README-ANDROID-OFFLINE.md). Konfigurasi build utama ada
+di [`buildozer.spec`](buildozer.spec), dan APK debug dihasilkan di `bin/` apabila
+toolchain host berhasil menjalankan Gradle/AAPT2. Build dapat gagal pada host yang
+menjalankan Android Build Tools x86 melalui FEX; kegagalan tersebut terjadi di
+toolchain, bukan pada validasi kode Python.
 
-## Stack
+## Struktur proyek
 
-- Flask application factory + Jinja2
-- SQLAlchemy dan Flask-Migrate (Alembic)
-- Flask-WTF untuk form/CSRF
-- Flask-Login untuk autentikasi lokal
-- SQLite sebagai development default; `DATABASE_URL` dapat diarahkan ke PostgreSQL
-- Rule engine dan Virtual Soil Sensor sebagai baseline yang eksplisit, tanpa fake computer vision
-- AI provider abstraction, feature versioning, confidence engine, XAI evidence, image quality,
-  model manifest/checksum, ML trend/anomaly/ensemble primitives, dan backup integrity
-- Runtime CPU nyata: PyTorch, torchvision, Ultralytics YOLO, ONNX Runtime, OpenCV,
-  scikit-learn, Transformers, SHAP, dan LIME
+| Path | Kegunaan |
+| --- | --- |
+| `main.py` | Entry point Android PySide6/Qt |
+| `main_kivy.py` | Aplikasi desktop/legacy Kivy |
+| `mobile/` | Storage SQLite dan rule engine offline |
+| `buildozer.spec` | Konfigurasi packaging APK |
+| `scripts/` | Setup environment dan helper build Android/web |
+| `tests/test_mobile.py` | Tes storage dan rule engine mobile |
+| `app/`, `templates/`, `static/` | Aplikasi web Flask |
 
-Komponen vision/ML berat bersifat modular. Jika model belum diinstal, sistem menampilkan
-`NOT_INSTALLED` atau `INSUFFICIENT_DATA`; sistem tidak mengarang diagnosis, confidence, atau
-pengukuran foto.
-
-## Menjalankan
+## Menjalankan aplikasi web
 
 ```bash
-cd web
 python3 -m venv .venv
-. .venv/bin/activate
+source .venv/bin/activate
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
 cp .env.example .env
 flask --app run.py run --debug
 ```
 
-Buka `http://127.0.0.1:5000`, buat akun, lalu buka salah satu dari 12 pohon awal.
-Untuk production PostgreSQL, set `DATABASE_URL` ke URL `postgresql+psycopg://...`.
-
-## Migrasi dan tes
-
-```bash
-flask --app run.py db init
-flask --app run.py db migrate -m "initial schema"
-flask --app run.py db upgrade
-pytest
-```
-
-Startup membuat schema/seed secara aman untuk development ketika `AUTO_CREATE_SCHEMA=1`.
-Untuk production, set `AUTO_CREATE_SCHEMA=0`, jalankan migrasi, lalu seed data secara eksplisit:
+Buka <http://127.0.0.1:5000>. SQLite adalah database development default; `DATABASE_URL`
+dapat diarahkan ke PostgreSQL. Untuk migrasi:
 
 ```bash
 flask --app run.py db upgrade
 flask --app run.py seed-data
 ```
 
-Migrasi produksi tidak menghapus database. Model visual belum tersedia; UI menyatakan
-keterbatasan tersebut dan tidak mengarang prediksi foto.
-
-Developer diagnostics tersedia setelah login di `/developer/diagnostics.json`.
-Model lokal YOLO11 Nano tersedia di `instance/models/yolo11n.pt` dan digunakan hanya untuk
-object detection umum. Hasilnya bukan diagnosis pertanian; foto yang lolos quality gate
-dicatat sebagai provenance `COMPUTER_VISION`.
-
-Model pack lokal yang tersedia:
-
-- YOLO11 Nano: object detection
-- MobileNetV3 Large: klasifikasi ImageNet umum
-- MobileNetV3 Large backbone: embedding visual umum
-- DeepLabV3 MobileNetV3 Large: semantic segmentation umum
-
-Semua model disimpan di `instance/models` dan memiliki manifest SHA-256 di
-`model_manifests`. Model-model umum tersebut tidak boleh dipresentasikan sebagai diagnosis
-hama, penyakit, atau ukuran agronomi rambutan tanpa dataset dan evaluasi pertanian khusus.
-
-## Lembar kerja analis kebun
-
-Antarmuka web menggunakan istilah kerja lapangan: register pohon, identitas
-petak, timeline tanaman, kondisi vegetatif, pertumbuhan, fase produktif,
-perlindungan tanaman, perawatan, dan hasil panen. Skema longitudinal mencatat
-posisi baris/kolom, jarak tanam, tanggal tanam, baseline ukuran, kondisi zona
-akar, pemadatan/drainase tanah, genangan, mulsa, ukuran tajuk, cabang primer,
-aktivitas bunga, kerontokan buah, bagian tanaman yang terdampak, penyebaran
-hama/penyakit, serta kepadatan dan metode pengendalian gulma.
-
-Field tambahan tersebut berada pada migration
-`a1b2c3d4e5f6_add_professional_agronomic_fields.py` dan dapat diterapkan tanpa
-menghapus database:
+## Pengujian
 
 ```bash
-flask --app run.py db upgrade
+pytest
 ```
-Untuk database development yang dibuat dengan `AUTO_CREATE_SCHEMA=1`, sinkronkan marker
-migrasi satu kali tanpa menghapus data:
 
-```bash
-flask --app run.py db stamp head
-flask --app run.py db check
-```
+Komponen vision/ML bersifat modular. Jika model belum tersedia, aplikasi melaporkan
+`NOT_INSTALLED` atau `INSUFFICIENT_DATA`. Model umum seperti YOLO tidak boleh
+dipresentasikan sebagai diagnosis hama, penyakit, atau ukuran agronomi rambutan tanpa
+dataset dan evaluasi pertanian khusus.
