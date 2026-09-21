@@ -31,7 +31,13 @@ buildozer -v android debug
 
 APK debug tersedia di `bin/`. Install dengan:
 
-```bash
+```
+
+Pada Fedora Asahi ARM64, Build Tools/NDK x86_64 dapat membutuhkan FEX/muvm.
+Workflow GitHub Actions adalah jalur build yang direkomendasikan karena berjalan
+di Ubuntu x86_64. Helper `scripts/android_x86_compiler.sh` dan
+`scripts/android_x86_cxx_compiler.sh` tersedia untuk host ARM64, tetapi beberapa
+recipe native masih bergantung pada perilaku FEX host.bash
 adb install -r bin/aianalisrambutan-1.0.0-arm64-v8a-debug.apk
 ```
 

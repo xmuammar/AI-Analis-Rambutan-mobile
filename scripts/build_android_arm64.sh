@@ -22,6 +22,8 @@ export PIP_NO_INDEX=1
 export PIP_FIND_LINKS="$ROOT_DIR/.buildozer/offline-wheels"
 export PIP_CONFIG_FILE="$ROOT_DIR/scripts/pip-offline.conf"
 export PYTHONNOUSERSITE=1
+export CC="$ROOT_DIR/scripts/android_x86_compiler.sh"
+export CXX="$ROOT_DIR/scripts/android_x86_compiler.sh"
 
 # shellcheck disable=SC1091
 source "$ROOT_DIR/.venv_android/bin/activate"
