@@ -28,6 +28,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf automake libtool libtool-bin pkg-config
+          echo "ACLOCAL_PATH=/usr/share/aclocal" >> "$GITHUB_ENV"
 
       - name: Install Buildozer
         run: |
