@@ -48,8 +48,9 @@ Alternatif setup dan troubleshooting tersedia di
 [`README-ANDROID-OFFLINE.md`](README-ANDROID-OFFLINE.md). Konfigurasi build utama ada
 di [`buildozer.spec`](buildozer.spec), dan APK debug dihasilkan di `bin/` apabila
 toolchain host berhasil menjalankan Gradle/AAPT2. Build dapat gagal pada host yang
-menjalankan Android Build Tools x86 melalui FEX; kegagalan tersebut terjadi di
-toolchain, bukan pada validasi kode Python.
+menjalankan Android Build Tools x86_64 langsung melalui FEX. Pada host ARM64 dengan
+page size 16K, AAPT2 harus dijalankan melalui `muvm` dengan page size guest 4K,
+seperti alur yang berhasil dipakai amarPlayer.
 
 ## Struktur proyek
 

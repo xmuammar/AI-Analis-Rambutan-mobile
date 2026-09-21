@@ -91,12 +91,18 @@ Project ini mengikuti pola arm64 yang terbukti di `amarPlayer`:
 - Versi Android ini memang offline dan lokal.
 - Model vision/ML berat tidak direpack ke APK. README utama project sudah menjelaskan bahwa model harus dikonversi ke TFLite atau ONNX mobile terlebih dahulu.
 - Build APK bergantung pada toolchain Android yang berfungsi di mesin host.
-- Jika host Linux intermiten atau punya masalah SDK manager / IPv6 / DNS, build akan gagal sebelum aplikasi benar-benar dikompilasi.
+- Pada host ARM64 dengan page size 16K, AAPT2 SDK x86_64 dijalankan melalui
+  `muvm` dengan page size guest 4K, bukan langsung melalui FEX. Helper
+  `scripts/buildozer_offline.py` menyiapkan override AAPT2 dan menjalankan Gradle
+  melalui alur tersebut.
+- Jika layanan `muvm`/`passt` tidak tersedia, build akan gagal sebelum APK dihasilkan.
 
 ## File helper yang tersedia
 
 - `scripts/setup_android_env.sh`
 - `scripts/build_android.sh`
+- `scripts/build_android_arm64.sh`
+- `scripts/buildozer_offline.py`
 - `scripts/build_android_compat.sh`
 - `scripts/fix_android_sdk_host.sh`
 

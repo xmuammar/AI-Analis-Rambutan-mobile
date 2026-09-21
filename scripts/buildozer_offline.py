@@ -1,7 +1,8 @@
 import os
+import subprocess
 from pathlib import Path
 
-from buildozer import Buildozer
+from buildozer import Buildozer, BuildozerCommandException
 from buildozer.targets.android import TargetAndroid
 
 
@@ -60,10 +61,47 @@ def cmd_without_java_home(self, command, **kwargs):
 Buildozer.cmd = cmd_without_java_home
 
 buildozer = Buildozer("buildozer.spec")
-buildozer.run_command(["android", "debug"])
-wrapper = Path(".buildozer/aapt2_fex")
-subprocess.run(
-    ["cc", "scripts/aapt2_fex.c", "-o", str(wrapper)],
-    check=True,
+try:
+    buildozer.run_command(["android", "debug"])
+except BuildozerCommandException:
+    buildozer.info(
+        "Buildozer berhenti pada tahap Gradle; melanjutkan assembleDebug melalui muvm"
+    )
+
+dist = Path(".buildozer/android/platform/build-arm64-v8a/dists/aianalisrambutan")
+gradle_properties = dist / "gradle.properties"
+aapt2 = SDK / "build-tools/37.0.0/aapt2"
+if not dist.is_dir() or not gradle_properties.is_file():
+    raise RuntimeError(f"Distribution Gradle tidak tersedia: {dist}")
+if not aapt2.is_file():
+    raise RuntimeError(f"AAPT2 tidak tersedia: {aapt2}")
+
+properties = [
+    line
+    for line in gradle_properties.read_text().splitlines()
+    if not line.startswith("android.aapt2FromMavenOverride=")
+]
+properties.append(f"android.aapt2FromMavenOverride={aapt2}")
+gradle_properties.write_text("\n".join(properties) + "\n")
+
+java_home = "/home/muammar/.jdk/jdk-21"
+environment = {
+    "JAVA_HOME": java_home,
+    "PATH": f"{java_home}/bin:/home/muammar/.local/bin:/usr/local/bin:/usr/bin:/bin",
+}
+result = subprocess.run(
+    [
+        "/usr/bin/muvm",
+        "--passt-args=--ipv4-only",
+        "-e",
+        f"JAVA_HOME={java_home}",
+        "-e",
+        f"PATH={environment['PATH']}",
+        "/bin/bash",
+        str(Path("scripts/gradle_muvm.sh").resolve()),
+    ],
+    check=False,
+    env={**os.environ, **environment},
 )
-wrapper.chmod(0o755)
+if result.returncode != 0:
+    raise SystemExit(result.returncode)
