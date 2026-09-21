@@ -13,6 +13,7 @@ fullscreen = 0
 android.api = 35
 android.minapi = 24
 android.archs = arm64-v8a
+android.accept_sdk_license = 1
 android.permissions = android.permission.CAMERA
 p4a.bootstrap = webview
 p4a.port = 5000
