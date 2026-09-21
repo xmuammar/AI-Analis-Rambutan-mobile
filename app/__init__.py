@@ -19,6 +19,12 @@ login_manager.login_message = "Silakan masuk untuk melanjutkan."
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+    database_uri = app.config["SQLALCHEMY_DATABASE_URI"]
+    if database_uri.startswith("sqlite:///"):
+        Path(database_uri.removeprefix("sqlite:///")).parent.mkdir(
+            parents=True, exist_ok=True
+        )
+    Path(app.config["MODEL_FOLDER"]).mkdir(parents=True, exist_ok=True)
     Path(app.config["UPLOAD_FOLDER"]).mkdir(parents=True, exist_ok=True)
 
     db.init_app(app)

@@ -17,51 +17,36 @@ Repository: <https://github.com/xmuammar/AI-Analis-Rambutan-mobile>
 - Foto inspeksi opsional.
 - Tidak membutuhkan jaringan setelah aplikasi terpasang.
 
-`main.py` adalah entrypoint Android berbasis Kivy dan `main_kivy.py` berisi layar
-offline Kivy. PySide6/Qt bukan runtime APK karena build Qt gagal tetap berjalan pada
-perangkat uji. Model vision/ML berat dari aplikasi web
-tidak dipaketkan ke APK; model harus dikonversi dan divalidasi ke TFLite atau ONNX
-mobile sebelum digunakan di perangkat.
+`main.py` adalah entrypoint Flask untuk desktop dan Android WebView. Pada APK,
+Flask berjalan lokal di `127.0.0.1:5000` dan WebView membuka halaman HTML yang
+sama; UI tidak diubah menjadi Kivy atau Qt. Model vision/ML berat tidak
+dipaketkan ke APK dasar, sehingga fitur yang tidak memiliki model melaporkan
+statusnya secara eksplisit dan pemeriksaan manual tetap dapat digunakan.
 
-## Menjalankan mobile secara lokal
+## Menjalankan aplikasi lokal
 
 ```bash
-python3 -m venv .venv_mobile
-source .venv_mobile/bin/activate
-pip install -r mobile/requirements.txt
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 python main.py
 ```
 
-Kode offline utama berada di `mobile/storage.py` dan `mobile/rules.py`.
-
 ## Build APK Android
 
-Build arm64 Kivy mengikuti toolchain yang kompatibel dengan project amarPlayer:
-Python 3.11, Java 21 ARM64, Android API 36, minimum API 24, dan arsitektur
-`arm64-v8a`.
-
-```bash
-./scripts/setup_android_env.sh
-./scripts/build_android_arm64.sh
-```
-
-Alternatif setup dan troubleshooting tersedia di
-[`README-ANDROID-OFFLINE.md`](README-ANDROID-OFFLINE.md). Konfigurasi build utama ada
-di [`buildozer.spec`](buildozer.spec), dan APK debug dihasilkan di `bin/` apabila
-toolchain host berhasil menjalankan Gradle/AAPT2. Build dapat gagal pada host yang
-menjalankan Android Build Tools x86_64 langsung melalui FEX. Pada host ARM64 dengan
-page size 16K, AAPT2 harus dijalankan melalui `muvm` dengan page size guest 4K,
-seperti alur yang berhasil dipakai amarPlayer.
+APK memakai python-for-android WebView bootstrap dan target `arm64-v8a`.
+Instruksi lengkap ada di [`ANDROID_BUILD.md`](ANDROID_BUILD.md).
 
 ## Struktur proyek
 
 | Path | Kegunaan |
 | --- | --- |
-| `main.py` | Entry point Android Kivy |
-| `main_kivy.py` | Layar dan alur aplikasi offline Kivy |
-| `mobile/` | Storage SQLite dan rule engine offline |
-| `buildozer.spec` | Konfigurasi packaging APK |
-| `scripts/` | Setup environment dan helper build Android/web |
+| `main.py` | Entry point Flask desktop dan WebView Android |
+| `app/templates/` | UI HTML/Jinja yang dipakai browser dan APK |
+| `app/static/` | CSS/JavaScript lokal, tanpa CDN |
+| `config.py` | Konfigurasi database/upload writable Android |
+| `buildozer.spec` | Konfigurasi python-for-android WebView |
+| `.github/workflows/android-build.yml` | Build APK Ubuntu x86_64 |
 | `tests/test_mobile.py` | Tes storage dan rule engine mobile |
 | `app/`, `templates/`, `static/` | Aplikasi web Flask |
 
