@@ -4,7 +4,8 @@ Project ini sudah memiliki versi Android offline berbasis Kivy. Fokus utamanya a
 
 ## Struktur utama
 
-- `main.py` — aplikasi Android Kivy utama
+- `main.py` — aplikasi Android PySide6/Qt utama
+- `main_kivy.py` — aplikasi Kivy desktop/legacy
 - `mobile/` — kode offline: SQLite dan rule engine
 - `mobile/storage.py` — database SQLite lokal
 - `mobile/rules.py` — evaluasi kondisi tanaman secara lokal dan explainable
@@ -24,9 +25,9 @@ Aplikasi Android offline ini dapat:
 
 ## Environment yang dibutuhkan untuk build APK
 
-Dibutuhkan mesin Linux yang kompatibel dengan Android SDK dan NDK, misalnya Ubuntu 22.04/24.04 atau WSL2 dengan Android toolchain yang stabil.
+Dibutuhkan mesin Linux yang kompatibel dengan Android SDK dan NDK. Standar arm64 yang dipakai mengikuti pola yang sudah terbukti pada project `amarPlayer` di `/home/muammar/aplikasiMp3`.
 
-## Setup Android (Python 3.11)
+## Setup Android (Python 3.11, arm64)
 
 ```bash
 cd /home/muammar/AI-Analis-Rambutan-mobile
@@ -37,12 +38,13 @@ pip install -r mobile/requirements.txt
 pip install buildozer
 ```
 
-## Java dan Android SDK
+## Java, SDK, dan NDK standar arm64
 
-Pastikan Java 17 terpasang dan Android SDK + NDK tersedia.
+Pastikan Java 21 ARM64 terpasang seperti pada amarPlayer dan Android SDK + NDK tersedia
+dengan path berikut:
 
 ```bash
-export JAVA_HOME=/home/muammar/.local/jdk-17.0.15+6
+export JAVA_HOME=/home/muammar/.jdk/jdk-21
 export PATH=$JAVA_HOME/bin:$PATH
 export ANDROID_HOME=/home/muammar/.buildozer/android/platform/android-sdk
 export ANDROID_SDK_ROOT=/home/muammar/.buildozer/android/platform/android-sdk
@@ -51,20 +53,38 @@ export ANDROID_NDK_ROOT=/home/muammar/.android-ndk-arm64/r29
 export JAVA_TOOL_OPTIONS='-Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false'
 ```
 
-## Build APK
+## Build APK arm64
 
 ```bash
 cd /home/muammar/AI-Analis-Rambutan-mobile
 source .venv_android/bin/activate
-export JAVA_HOME=/home/muammar/.local/jdk-17.0.15+6
+export JAVA_HOME=/home/muammar/.jdk/jdk-21
 export PATH=$JAVA_HOME/bin:$PATH
 export ANDROID_HOME=/home/muammar/.buildozer/android/platform/android-sdk
 export ANDROID_SDK_ROOT=/home/muammar/.buildozer/android/platform/android-sdk
 export ANDROID_NDK_HOME=/home/muammar/.android-ndk-arm64/r29
 export ANDROID_NDK_ROOT=/home/muammar/.android-ndk-arm64/r29
 export JAVA_TOOL_OPTIONS='-Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false'
+./scripts/build_android.sh
+```
+
+Atau langsung:
+
+```bash
 buildozer android debug
 ```
+
+## Standar konfigurasi yang dipakai
+
+Project ini mengikuti pola arm64 yang terbukti di `amarPlayer`:
+
+- Python 3.11
+- Java 21 ARM64
+- Android API 36
+- min API 24
+- arsitektur `arm64-v8a`
+- NDK `/home/muammar/.android-ndk-arm64/r29`
+- SDK `/home/muammar/.buildozer/android/platform/android-sdk`
 
 ## Catatan penting
 

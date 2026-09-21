@@ -6,7 +6,8 @@ Flutter Web, atau Node.js sebagai application server.
 
 ## Aplikasi Android offline
 
-Client Android Python tersedia di `main.py` dan paket `mobile/`. Data akun, 12 pohon awal,
+Client Android Python tersedia di `main.py` (PySide6/Qt) dan paket `mobile/`. Versi desktop
+Kivy dipertahankan di `main_kivy.py`. Data akun, 12 pohon awal,
 dan inspeksi disimpan di SQLite pada perangkat. Evaluasi kondisi offline adalah rule engine
 yang transparan dan bukan diagnosis penyakit. Model vision Flask yang berbasis PyTorch dan
 Ultralytics tidak dipaketkan ke APK; model tersebut perlu dikonversi dan divalidasi ke

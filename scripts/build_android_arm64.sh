@@ -4,9 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-VENV_DIR="$ROOT_DIR/.venv_android"
-if [ ! -d "$VENV_DIR" ]; then
-  echo "Android venv not found. Run scripts/setup_android_env.sh first."
+if [ ! -d "$ROOT_DIR/.venv_android" ]; then
+  echo "Android venv belum dibuat. Jalankan scripts/setup_android_env.sh terlebih dahulu."
   exit 1
 fi
 
@@ -18,8 +17,9 @@ export ANDROID_SDK_ROOT="/home/muammar/.buildozer/android/platform/android-sdk"
 export ANDROID_NDK_HOME="/home/muammar/.android-ndk-arm64/r29"
 export ANDROID_NDK_ROOT="/home/muammar/.android-ndk-arm64/r29"
 export JAVA_TOOL_OPTIONS='-Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false'
+export LD_LIBRARY_PATH="$HOME/.android-ndk-arm64/compat${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
 # shellcheck disable=SC1091
-source "$VENV_DIR/bin/activate"
+source "$ROOT_DIR/.venv_android/bin/activate"
 
-buildozer android debug
+python scripts/buildozer_offline.py
