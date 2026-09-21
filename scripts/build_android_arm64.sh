@@ -18,6 +18,10 @@ export ANDROID_NDK_HOME="/home/muammar/.android-ndk-arm64/r29"
 export ANDROID_NDK_ROOT="/home/muammar/.android-ndk-arm64/r29"
 export JAVA_TOOL_OPTIONS='-Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false'
 export LD_LIBRARY_PATH="$HOME/.android-ndk-arm64/compat${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export PIP_NO_INDEX=1
+export PIP_FIND_LINKS="$ROOT_DIR/.buildozer/offline-wheels"
+export PIP_CONFIG_FILE="$ROOT_DIR/scripts/pip-offline.conf"
+export PYTHONNOUSERSITE=1
 
 # shellcheck disable=SC1091
 source "$ROOT_DIR/.venv_android/bin/activate"

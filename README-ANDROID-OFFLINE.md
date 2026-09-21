@@ -4,8 +4,8 @@ Project ini sudah memiliki versi Android offline berbasis Kivy. Fokus utamanya a
 
 ## Struktur utama
 
-- `main.py` — aplikasi Android PySide6/Qt utama
-- `main_kivy.py` — aplikasi Kivy desktop/legacy
+- `main.py` — entrypoint aplikasi Android Kivy
+- `main_kivy.py` — layar aplikasi offline Kivy
 - `mobile/` — kode offline: SQLite dan rule engine
 - `mobile/storage.py` — database SQLite lokal
 - `mobile/rules.py` — evaluasi kondisi tanaman secara lokal dan explainable
@@ -27,7 +27,7 @@ Aplikasi Android offline ini dapat:
 
 Dibutuhkan mesin Linux yang kompatibel dengan Android SDK dan NDK. Standar arm64 yang dipakai mengikuti pola yang sudah terbukti pada project `amarPlayer` di `/home/muammar/aplikasiMp3`.
 
-## Setup Android (Python 3.11, arm64)
+## Setup Android Kivy (Python 3.11, arm64)
 
 ```bash
 cd /home/muammar/AI-Analis-Rambutan-mobile

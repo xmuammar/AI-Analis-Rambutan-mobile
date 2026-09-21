@@ -8,6 +8,80 @@ from buildozer.targets.android import TargetAndroid
 
 SDK = Path("/home/muammar/.buildozer/android/platform/android-sdk")
 NDK = Path("/home/muammar/.android-ndk-arm64/r29")
+PIP_WHEELS = Path.cwd() / ".buildozer/offline-wheels"
+P4A_RECIPE = Path(".buildozer/android/platform/python-for-android/pythonforandroid/recipe.py")
+KIVY_RECIPE = Path(
+    ".buildozer/android/platform/python-for-android/pythonforandroid/recipes/kivy/__init__.py"
+)
+PYJNIUS_RECIPE = Path(
+    ".buildozer/android/platform/python-for-android/pythonforandroid/recipes/pyjnius/__init__.py"
+)
+
+
+def configure_offline_pip():
+    if not P4A_RECIPE.is_file():
+        return
+    source = P4A_RECIPE.read_text()
+    marker = '            "install",\n'
+    replacement = (
+        '            "install",\n'
+        f'            "--no-index", "--find-links", "{PIP_WHEELS}",\n'
+    )
+    if marker in source and replacement not in source:
+        P4A_RECIPE.write_text(source.replace(marker, replacement, 1))
+        source = P4A_RECIPE.read_text()
+    env_marker = "        env['HOME'] = '/tmp'\n"
+    env_replacement = (
+        env_marker
+        + f"        env['PIP_NO_INDEX'] = '1'\n"
+        + f"        env['PIP_FIND_LINKS'] = '{PIP_WHEELS}'\n"
+    )
+    if env_marker in source and "env['PIP_NO_INDEX']" not in source:
+        P4A_RECIPE.write_text(source.replace(env_marker, env_replacement, 1))
+    source = P4A_RECIPE.read_text()
+    wheel_marker = '            "--wheel",\n'
+    wheel_replacement = wheel_marker + '            "--no-isolation",\n'
+    if wheel_marker in source and wheel_replacement not in source:
+        P4A_RECIPE.write_text(source.replace(wheel_marker, wheel_replacement, 1))
+    if KIVY_RECIPE.is_file():
+        kivy_source = KIVY_RECIPE.read_text()
+        kivy_source = kivy_source.replace(
+            'hostpython_prerequisites = ["cython>=0.29.1,<=3.0.12"]',
+            'hostpython_prerequisites = ["Cython>=0.29.1,<=3.0.11", '
+            '"setuptools==69.2.0", "wheel==0.44.0"]',
+        )
+        kivy_source = kivy_source.replace(
+            "python_depends = ['certifi', 'chardet', 'idna', 'requests', "
+            "'urllib3', 'filetype']",
+            "python_depends = []",
+        )
+        kivy_source = kivy_source.replace(
+            "python_depends = ['filetype']",
+            "python_depends = []",
+        )
+        KIVY_RECIPE.write_text(kivy_source)
+    if PYJNIUS_RECIPE.is_file():
+        pyjnius_source = PYJNIUS_RECIPE.read_text()
+        pyjnius_source = pyjnius_source.replace(
+            "depends = [('genericndkbuild', 'sdl2', 'sdl3'), 'six']",
+            "depends = [('genericndkbuild', 'sdl2', 'sdl3')]",
+        )
+        PYJNIUS_RECIPE.write_text(pyjnius_source)
+    for setup_cfg in Path(".buildozer").glob(
+        "android/platform/build-arm64-v8a/build/other_builds/**/kivy/setup.cfg"
+    ):
+        cfg = setup_cfg.read_text()
+        cfg = cfg.replace("    requests\n", "").replace("    filetype\n", "")
+        setup_cfg.write_text(cfg)
+    source = P4A_RECIPE.read_text()
+    source = source.replace(
+        '"build[virtualenv]", "pip", "setuptools", "patchelf"',
+        '"build[virtualenv]", "pip", "setuptools==69.2.0", "wheel==0.44.0", "patchelf"',
+    )
+    P4A_RECIPE.write_text(source)
+
+
+configure_offline_pip()
 
 
 def skip_sdk_manager_when_ready(self):
@@ -90,18 +164,19 @@ environment = {
     "PATH": f"{java_home}/bin:/home/muammar/.local/bin:/usr/local/bin:/usr/bin:/bin",
 }
 result = subprocess.run(
-    [
-        "/usr/bin/muvm",
-        "--passt-args=--ipv4-only",
-        "-e",
-        f"JAVA_HOME={java_home}",
-        "-e",
-        f"PATH={environment['PATH']}",
-        "/bin/bash",
-        str(Path("scripts/gradle_muvm.sh").resolve()),
-    ],
+    ["/bin/bash", str(Path("scripts/gradle_muvm.sh").resolve())],
     check=False,
     env={**os.environ, **environment},
 )
 if result.returncode != 0:
     raise SystemExit(result.returncode)
+
+apk = dist / "build/outputs/apk/debug/aianalisrambutan-debug.apk"
+if not apk.is_file():
+    raise RuntimeError(f"APK tidak dihasilkan: {apk}")
+
+output_dir = Path("bin")
+output_dir.mkdir(exist_ok=True)
+output_apk = output_dir / apk.name
+output_apk.write_bytes(apk.read_bytes())
+print(f"APK tersedia di {output_apk} ({output_apk.stat().st_size} bytes)")

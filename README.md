@@ -17,8 +17,9 @@ Repository: <https://github.com/xmuammar/AI-Analis-Rambutan-mobile>
 - Foto inspeksi opsional.
 - Tidak membutuhkan jaringan setelah aplikasi terpasang.
 
-`main.py` adalah entrypoint Android berbasis PySide6/Qt. `main_kivy.py` adalah aplikasi
-desktop/legacy Kivy dan bukan entrypoint APK. Model vision/ML berat dari aplikasi web
+`main.py` adalah entrypoint Android berbasis Kivy dan `main_kivy.py` berisi layar
+offline Kivy. PySide6/Qt bukan runtime APK karena build Qt gagal tetap berjalan pada
+perangkat uji. Model vision/ML berat dari aplikasi web
 tidak dipaketkan ke APK; model harus dikonversi dan divalidasi ke TFLite atau ONNX
 mobile sebelum digunakan di perangkat.
 
@@ -35,7 +36,7 @@ Kode offline utama berada di `mobile/storage.py` dan `mobile/rules.py`.
 
 ## Build APK Android
 
-Build arm64 mengikuti toolchain yang kompatibel dengan project amarPlayer:
+Build arm64 Kivy mengikuti toolchain yang kompatibel dengan project amarPlayer:
 Python 3.11, Java 21 ARM64, Android API 36, minimum API 24, dan arsitektur
 `arm64-v8a`.
 
@@ -56,8 +57,8 @@ seperti alur yang berhasil dipakai amarPlayer.
 
 | Path | Kegunaan |
 | --- | --- |
-| `main.py` | Entry point Android PySide6/Qt |
-| `main_kivy.py` | Aplikasi desktop/legacy Kivy |
+| `main.py` | Entry point Android Kivy |
+| `main_kivy.py` | Layar dan alur aplikasi offline Kivy |
 | `mobile/` | Storage SQLite dan rule engine offline |
 | `buildozer.spec` | Konfigurasi packaging APK |
 | `scripts/` | Setup environment dan helper build Android/web |
