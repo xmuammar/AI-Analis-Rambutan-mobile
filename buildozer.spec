@@ -18,3 +18,5 @@ android.api = 35
 android.minapi = 23
 android.archs = arm64-v8a
 android.allow_backup = 1
+android.sdk_path = /home/muammar/.buildozer/android/platform/android-sdk
+android.ndk_path = /home/muammar/.android-ndk-arm64/r29
